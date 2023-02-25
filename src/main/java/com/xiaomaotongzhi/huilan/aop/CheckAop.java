@@ -46,7 +46,7 @@ public class CheckAop {
     @Autowired
     private StringRedisTemplate stringRedisTemplate ;
 
-    @Before("execution(* com.xiaomaotongzhi.huilan.service.UserServiceImpl..*.*(..)) && !execution(* com.xiaomaotongzhi.huilan.service.UserServiceImpl..UserServiceImpl.login(..)) && !execution(* com.xiaomaotongzhi.huilan.service.UserServiceImpl..UserServiceImpl.regist(..))")
+    @Before("execution(* com.xiaomaotongzhi.huilan.service.UserServiceImpl..*.*(..)) && !execution(* com.xiaomaotongzhi.huilan.service.UserServiceImpl..UserServiceImpl.login(..)) && !execution(* com.xiaomaotongzhi.huilan.service.UserServiceImpl..UserServiceImpl.regist(..)) && !execution(* com.xiaomaotongzhi.huilan.service.UserServiceImpl..UserServiceImpl.getWechatInfo(..)) ")
     public void BeforeForUser() throws Throwable {
         Integer id = UserHolder.getUser().getId();
         User user = userMapper.selectOne(new QueryWrapper<User>().eq("id", id));

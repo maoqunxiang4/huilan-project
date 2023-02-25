@@ -1,11 +1,13 @@
 package com.xiaomaotongzhi.huilan.controller;
 
 import com.fasterxml.jackson.databind.ser.Serializers;
+import com.xiaomaotongzhi.huilan.entity.DoubleComment;
 import com.xiaomaotongzhi.huilan.mapper.ClubContentMapper;
 import com.xiaomaotongzhi.huilan.mapper.CommentMapper;
 import com.xiaomaotongzhi.huilan.mapper.DoubleCommentMapper;
 import com.xiaomaotongzhi.huilan.service.UserServiceImpl.ClubContentServiceImpl;
 import com.xiaomaotongzhi.huilan.service.UserServiceImpl.CommentServiceImpl;
+import com.xiaomaotongzhi.huilan.service.UserServiceImpl.DoubleCommentServiceImpl;
 import com.xiaomaotongzhi.huilan.utils.Result;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -22,6 +24,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class ClubContentController extends BaseController {
     @Autowired
     private ClubContentServiceImpl clubContentService ;
+
+    @Autowired
+    private CommentServiceImpl commentService ;
+
+    @Autowired
+    private DoubleCommentServiceImpl doubleCommentService ;
 
     @GetMapping("/add")
     @ApiOperation(value = "添加社团博客" ,
@@ -58,9 +66,12 @@ public class ClubContentController extends BaseController {
 
     @ApiOperation(value = "展示全部社团博客（只需展示标题）" ,
             notes = "接口：展示全部社团博客（只需展示标题）")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "current" , value = "当前页数" ,dataType = "Integer") ,
+    })
     @GetMapping("/show")
-    public Result showClubContent(){
-        return clubContentService.showAllClubContent() ;
+    public Result showClubContent(Integer current){
+        return clubContentService.showAllClubContent(current) ;
     }
 
 

@@ -7,6 +7,6 @@ import javax.jws.soap.SOAPBinding;
 
 public interface IAttentionService {
     Result addOrDeleteAttention(Integer uid) ;
-    Result showAttentionList() ;
+    Result showAttentionList(Integer current) ;
     User isAttention(User user) ;
 }

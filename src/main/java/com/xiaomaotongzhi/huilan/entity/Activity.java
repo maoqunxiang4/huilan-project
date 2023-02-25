@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 public class Activity implements Serializable {
     @TableId(type = IdType.AUTO)
     private Integer id ;
+    private Integer uid ;
     private String title ;
     private String content ;
     private Integer aid ;

@@ -7,5 +7,5 @@ import java.awt.geom.RectangularShape;
 public interface ICommentService {
     Result addComment(Integer cid , String content) ;
     Result deleteComment(Integer id) ;
-    Result showComments(Integer cid) ;
+    Result showComments(Integer cid ,Integer current) ;
 }

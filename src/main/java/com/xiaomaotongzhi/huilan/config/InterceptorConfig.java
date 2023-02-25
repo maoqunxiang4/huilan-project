@@ -23,6 +23,7 @@ public class InterceptorConfig implements WebMvcConfigurer {
         list.add("/swagger**/**") ;
         list.add("/user/regist") ;
         list.add("/user/login") ;
+        list.add("/user/wechatlogin/**") ;
         list.add("/v2/**") ;
         registry.addInterceptor(new RefreshInterceptor(stringRedisTemplate)).addPathPatterns("/**")
                 .excludePathPatterns(list);

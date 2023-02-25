@@ -4,6 +4,11 @@ spring:
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
     username: root
+    datasource:
+      max-activity: 1000
+      max-idle: 20
+      min-idle: 5
+      initial-size: 10
 
   redis:
     host: 43.139.125.20
@@ -24,5 +29,5 @@ mybatis-plus:
   mapper-locations: classpath:mappers/*.xml
 
 wechat:
-  appid: wx80603a3fea2bfc4b
-  secret: 92981ea58e9bb63f11a7373923176e40
+  appid: wx9ee81b2bc09f089e
+  secret: 5fb9d2d43d923f5758b31981b3a9b35c

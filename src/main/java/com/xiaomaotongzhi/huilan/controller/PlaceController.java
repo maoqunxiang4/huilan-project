@@ -1,6 +1,7 @@
 package com.xiaomaotongzhi.huilan.controller;
 
 import com.fasterxml.jackson.databind.ser.Serializers;
+import com.xiaomaotongzhi.huilan.service.UserServiceImpl.PlaceAppointmentServiceImpl;
 import com.xiaomaotongzhi.huilan.service.UserServiceImpl.PlaceServiceImpl;
 import com.xiaomaotongzhi.huilan.utils.Result;
 import io.swagger.annotations.Api;
@@ -20,6 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class PlaceController extends BaseController {
     @Autowired
     private PlaceServiceImpl placeService ;
+
+    @Autowired
+    private PlaceAppointmentServiceImpl placeAppointmentService ;
 
     @GetMapping("/add")
     @ApiOperation(value = "添加场地" ,
@@ -63,9 +67,10 @@ public class PlaceController extends BaseController {
             notes = "接口：展示场地")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "gid" , value = "选中的体育馆的id号（选中后自动传入）" ,dataType = "Integer") ,
+            @ApiImplicitParam(name = "current" , value = "当前页数" ,dataType = "Integer") ,
     })
-    public Result showPlace(Integer gid){
-        return placeService.showPlace(gid) ;
+    public Result showPlace(Integer gid ,Integer current){
+        return placeService.showPlace(gid ,current) ;
     }
 
     @GetMapping("/search")
@@ -74,9 +79,19 @@ public class PlaceController extends BaseController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "gid" , value = "选中的体育馆的id号（选中后自动传入）" ,dataType = "Integer") ,
             @ApiImplicitParam(name = "start" , value = "初始时间(格式:yyyy-MM-dd HH:mm)" ,dataType = "String") ,
-            @ApiImplicitParam(name = "start" , value = "结束时间(格式:yyyy-MM-dd HH:mm)" ,dataType = "String") ,
+            @ApiImplicitParam(name = "end" , value = "结束时间(格式:yyyy-MM-dd HH:mm)" ,dataType = "String") ,
     })
     public Result searchPlace(Integer gid, String start, String end){
         return placeService.searchPlace(gid, start, end) ;
+    }
+
+    @GetMapping("/addPlaceAppoinment")
+    @ApiOperation(value = "添加场地预约" ,
+            notes = "接口：添加场地预约")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "pid" , value = "选中的场地的id号（选中后自动传入）" ,dataType = "Integer") ,
+    })
+    public Result addPlaceAppoinment(Integer pid){
+        return placeAppointmentService.addPlaceAppoinment(pid) ;
     }
 }

@@ -1,5 +1,6 @@
 package com.xiaomaotongzhi.huilan.controller;
 
+import com.alibaba.druid.sql.dialect.oracle.ast.OracleDataTypeIntervalYear;
 import com.xiaomaotongzhi.huilan.entity.DoubleComment;
 import com.xiaomaotongzhi.huilan.service.UserServiceImpl.CommentServiceImpl;
 import com.xiaomaotongzhi.huilan.service.UserServiceImpl.DoubleCommentServiceImpl;
@@ -45,10 +46,11 @@ public class ConmmentController {
     @ApiOperation(value = "展示评论" ,
             notes = "接口：展示评论")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "cid" , value = "社团博客的id号" ,dataType = "Integer")
+            @ApiImplicitParam(name = "cid" , value = "社团博客的id号" ,dataType = "Integer") ,
+            @ApiImplicitParam(name = "current" , value = "当前页数" ,dataType = "Integer") ,
     })
-    public Result showComments(Integer cid){
-        return commentService.showComments(cid) ;
+    public Result showComments(Integer cid , Integer current){
+        return commentService.showComments(cid,current) ;
     }
 
 

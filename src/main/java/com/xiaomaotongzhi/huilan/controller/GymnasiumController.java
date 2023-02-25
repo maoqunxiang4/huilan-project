@@ -55,8 +55,11 @@ public class GymnasiumController extends BaseController{
     @GetMapping("/show")
     @ApiOperation(value = "展示体育馆" ,
             notes = "接口：展示体育馆")
-    public Result showGymnasium(){
-        return gymnasiumService.showGymnasium() ;
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "current" , value = "当前页数" ,dataType = "Integer") ,
+    })
+    public Result showGymnasium(Integer current){
+        return gymnasiumService.showGymnasium(current) ;
     }
 
 }

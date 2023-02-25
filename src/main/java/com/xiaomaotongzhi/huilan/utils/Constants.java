@@ -9,5 +9,6 @@ public class Constants {
     public static final String ACTIVITYCONTENT_PREFIX = "activityContent:" ;
     public static final String CLUBCONTENT_PREFIX = "clubContent:like:" ;
     public static final Integer ACTIVITY_EXPIRETIME = 30 ;
+    public static final Integer DEFAULT_PAGESIZE = 10 ;
 
 }

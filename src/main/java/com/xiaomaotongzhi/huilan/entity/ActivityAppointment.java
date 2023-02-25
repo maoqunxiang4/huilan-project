@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @TableName("t_activityappointment")
 @Data
@@ -19,4 +20,6 @@ public class ActivityAppointment implements Serializable {
     private Integer uid ;
     private Integer aid ;
     private Integer sign ;
+    private Integer state ;
+    private LocalDateTime time ;
 }

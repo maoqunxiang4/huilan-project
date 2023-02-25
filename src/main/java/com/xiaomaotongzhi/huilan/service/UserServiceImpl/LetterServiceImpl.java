@@ -1,6 +1,7 @@
 package com.xiaomaotongzhi.huilan.service.UserServiceImpl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xiaomaotongzhi.huilan.entity.Activity;
 import com.xiaomaotongzhi.huilan.entity.Letter;
 import com.xiaomaotongzhi.huilan.mapper.LetterMapper;
@@ -14,6 +15,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import static com.xiaomaotongzhi.huilan.utils.Constants.DEFAULT_PAGESIZE;
+
 @Service
 @Transactional
 public class LetterServiceImpl implements ILetterService {
@@ -21,11 +24,11 @@ public class LetterServiceImpl implements ILetterService {
     private LetterMapper letterMapper ;
 
     @Override
-    public Result showLetter() {
-        List<Letter> letters = letterMapper
-                .selectList(new QueryWrapper<Letter>().eq("dest", UserHolder.getUser().getId()));
-
-        return OtherUtils.showContent(letters,new Letter()) ;
+    public Result showLetter(Integer current) {
+        QueryWrapper<Letter> wrapper = new QueryWrapper<Letter>().eq("dest", UserHolder.getUser().getId());
+        Page<Letter> page = new Page<>((long) DEFAULT_PAGESIZE*(current-1) ,DEFAULT_PAGESIZE);
+        Page<Letter> letterPage = letterMapper.selectPage(page, wrapper);
+        return OtherUtils.showContent(letterPage.getRecords(),new Letter()) ;
     }
 
     @Override

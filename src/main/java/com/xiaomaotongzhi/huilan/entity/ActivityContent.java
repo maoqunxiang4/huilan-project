@@ -20,6 +20,7 @@ public class ActivityContent implements Serializable {
     private Integer id ;
     private Integer uid ;
     private String title ;
+    private Integer belong ;
     private String author ;
     private String content ;
     @TableField("isDelete")

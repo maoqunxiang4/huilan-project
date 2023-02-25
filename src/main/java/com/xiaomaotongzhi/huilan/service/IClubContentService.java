@@ -7,7 +7,7 @@ import org.springframework.data.redis.core.script.ReactiveScriptExecutor;
 public interface IClubContentService {
     Result addClubContent(String title ,String content) ;
     Result deleteClubContent(Integer id) ;
-    Result showAllClubContent() ;
+    Result showAllClubContent(Integer current) ;
     Result showSpecificClubContent(Integer id) ;
     Result updateClubContent(Integer id ,String title ,String content) ;
     Result changeLike(Integer id) ;

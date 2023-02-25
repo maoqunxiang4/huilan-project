@@ -1,6 +1,7 @@
 package com.xiaomaotongzhi.huilan.service.UserServiceImpl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xiaomaotongzhi.huilan.entity.Activity;
 import com.xiaomaotongzhi.huilan.entity.Gymnasium;
 import com.xiaomaotongzhi.huilan.entity.Place;
@@ -16,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import static com.xiaomaotongzhi.huilan.utils.Constants.DEFAULT_PAGESIZE;
 
 @Service
 @Transactional
@@ -57,8 +60,9 @@ public class GymnasiumServiceImpl implements IGymnasiumService {
     }
 
     @Override
-    public Result showGymnasium() {
-        List<Gymnasium> gymnasiums = gymnasiumMapper.selectList(new QueryWrapper<Gymnasium>());
-        return OtherUtils.showContent(gymnasiums,new Gymnasium()) ;
+    public Result showGymnasium(Integer current) {
+        Page<Gymnasium> page = new Page<>((long) DEFAULT_PAGESIZE * (current - 1), DEFAULT_PAGESIZE);
+        Page<Gymnasium> gymnasiumPage = gymnasiumMapper.selectPage(page, new QueryWrapper<Gymnasium>());
+        return OtherUtils.showContent(gymnasiumPage.getRecords(),new Gymnasium()) ;
     }
 }

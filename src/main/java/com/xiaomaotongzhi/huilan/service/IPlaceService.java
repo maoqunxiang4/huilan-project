@@ -7,6 +7,6 @@ public interface IPlaceService {
     Result addPlace(Integer gid , String placename , String time) ;
     Result updatePlace(Integer pid, Integer gid ,String placename , String time ) ;
     Result deletePlace(Integer id) ;
-    Result showPlace(Integer gid) ;
+    Result showPlace(Integer gid ,Integer current) ;
     Result searchPlace(Integer gid , String start , String end ) ;
 }

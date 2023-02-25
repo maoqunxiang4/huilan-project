@@ -14,7 +14,7 @@ public interface IUserService {
     public Result login( String username , String password) ;
     public Result changePassword(String oldPassword , String newPassword) ;
     public Result getAttestation(Integer attestation) ;
-    public Result showAllContent() ;
-    public Result showSpecificContent(Integer id) ;
-    public Result wechatLogin(Jscode2session jscode2session ,String phone) ;
+    public Result showAllContent(Integer current) ;
+    public Result showSpecificContent(Integer id,String title) ;
+    public Result getWechatInfo(String openid) ;
 }

@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static com.xiaomaotongzhi.huilan.utils.Constants.ATTENTION_PREFIX;
+import static com.xiaomaotongzhi.huilan.utils.Constants.DEFAULT_PAGESIZE;
 
 @Service
 @Transactional
@@ -52,15 +53,19 @@ public class AttentionServiceImpl implements IAttentionService {
     }
 
     @Override
-    public Result showAttentionList() {
+    public Result showAttentionList(Integer current) {
         ArrayList<Integer> ids = new ArrayList<>();
         Set<String> members = stringRedisTemplate.opsForSet().members(ATTENTION_PREFIX + UserHolder.getUser().getId());
         if (members==null){
             ArrayList<User> list = new ArrayList<>();
             return Result.ok(200,list) ;
         }
+        int skip = (current-1)*DEFAULT_PAGESIZE ;
+        int count = 1 ;
         for (String member : members) {
             ids.add(Integer.parseInt(member)) ;
+            count++ ;
+            if (count>DEFAULT_PAGESIZE) break;
         }
         Iterator<Integer> iterator = ids.iterator();
         ArrayList<User> users = new ArrayList<>();
@@ -77,7 +82,7 @@ public class AttentionServiceImpl implements IAttentionService {
     public User isAttention(User user) {
         Boolean isAttention = stringRedisTemplate.opsForSet()
                 .isMember(ATTENTION_PREFIX + UserHolder.getUser().getId()
-                        , user.getId());
+                        , user.getId().toString());
         user.setIsAttention(isAttention);
         return user ;
     }

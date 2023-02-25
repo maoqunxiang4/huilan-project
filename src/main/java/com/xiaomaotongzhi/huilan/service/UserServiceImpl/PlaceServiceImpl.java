@@ -1,6 +1,7 @@
 package com.xiaomaotongzhi.huilan.service.UserServiceImpl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.mysql.cj.jdbc.exceptions.MySQLQueryInterruptedException;
 import com.xiaomaotongzhi.huilan.entity.Activity;
 import com.xiaomaotongzhi.huilan.entity.Place;
@@ -20,6 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+
+import static com.xiaomaotongzhi.huilan.utils.Constants.DEFAULT_PAGESIZE;
 
 
 @Service
@@ -74,13 +77,14 @@ public class PlaceServiceImpl implements IPlaceService {
     }
 
     @Override
-    public Result showPlace(Integer gid) {
-        List<Place> places = placeMapper
-                .selectList(new QueryWrapper<Place>()
-                        .eq("gid", gid)
-                        .eq("state",0)
-                        .orderByAsc("time"));
-        return OtherUtils.showContent(places,new Place());
+    public Result showPlace(Integer gid , Integer current) {
+        QueryWrapper<Place> wrapper = new QueryWrapper<Place>()
+                .eq("gid", gid)
+                .eq("state", 0)
+                .orderByAsc("time");
+        Page<Place> page = new Page<>((long) DEFAULT_PAGESIZE * (current - 1) ,DEFAULT_PAGESIZE);
+        Page<Place> placePage = placeMapper.selectPage(page, wrapper);
+        return OtherUtils.showContent(placePage.getRecords(),new Place());
     }
 
     @Override

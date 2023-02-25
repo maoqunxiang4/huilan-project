@@ -28,9 +28,6 @@ public class RefreshInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-
-        String wx_token = request.getHeader("wx_token");
-        if (wx_token==null) {
             //检查用户是否登录过期
             String token = request.getHeader("token");
             Map<Object, Object> map = stringRedisTemplate.opsForHash().entries(LOGIN_PREFIX + token);
@@ -42,20 +39,9 @@ public class RefreshInterceptor implements HandlerInterceptor {
 
             //不过期，继续执行并刷新缓存
             stringRedisTemplate.expire(LOGIN_PREFIX + token , 30 , TimeUnit.MINUTES) ;
-            UserVo user = new UserVo();
-            UserVo bean = BeanUtil.fillBeanWithMap(map, user, false);
-            UserHolder.setUser(bean);
-        }
-        else {
-            Map<Object, Object> map = stringRedisTemplate.opsForHash().entries(WECHAT_PREFIX + wx_token);
-            if (map.isEmpty()){
-                return false ;
-            }
-            stringRedisTemplate.expire(WECHAT_PREFIX + wx_token, 30 , TimeUnit.MINUTES) ;
-            UserVo userVo = BeanUtil.fillBeanWithMap(map, new UserVo(), false);
-            UserHolder.setUser(userVo);
-        }
-        return true ;
+            UserVo user = BeanUtil.fillBeanWithMap(map,new UserVo(), false);
+            UserHolder.setUser(user);
+            return true ;
     }
 
     @Override

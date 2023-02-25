@@ -22,8 +22,11 @@ public class LetterConroller {
     @GetMapping("/show")
     @ApiOperation(value = "展示邮件" ,
             notes = "接口：展示邮件")
-    private Result showLetters(){
-        return letterService.showLetter() ;
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "current" , value = "当前页数" ,dataType = "Integer") ,
+    })
+    private Result showLetters(Integer current){
+        return letterService.showLetter(current) ;
     }
 
     @GetMapping("/delete")

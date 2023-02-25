@@ -56,7 +56,7 @@ public class ActivityContentController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "id" , value = "活动内容id" , dataType = "Integer")
     })
-    public Result showActivityContent(Integer id){
+    public Result showActivityContent(Integer id ){
         return  activityContentService.showActivityContent(id);
     }
 

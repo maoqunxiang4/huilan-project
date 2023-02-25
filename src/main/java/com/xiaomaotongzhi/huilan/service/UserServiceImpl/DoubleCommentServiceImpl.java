@@ -2,6 +2,7 @@ package com.xiaomaotongzhi.huilan.service.UserServiceImpl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xiaomaotongzhi.huilan.entity.Comment;
 import com.xiaomaotongzhi.huilan.entity.DoubleComment;
 import com.xiaomaotongzhi.huilan.mapper.CommentMapper;
@@ -17,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.print.attribute.standard.MediaSize;
 import java.util.List;
+
+import static com.xiaomaotongzhi.huilan.utils.Constants.DEFAULT_PAGESIZE;
 
 @Service
 @Transactional
@@ -49,11 +52,11 @@ public class DoubleCommentServiceImpl implements IDoubleCommentService {
 
     @Override
     public Result deleteComment(Integer id) {
+        DoubleComment doubleComment = doubleCommentMapper.selectById(id);
         int rows = doubleCommentMapper.deleteById(id);
         if (rows==0){
             return Result.fail(503,"服务器出现不知名异常");
         }
-        DoubleComment doubleComment = doubleCommentMapper.selectById(id);
         Integer comid = doubleComment.getComid();
         UpdateWrapper<Comment> wrapper = new UpdateWrapper<Comment>().eq("id", comid).setSql(" comments = comments - 1 ");
         rows = commentMapper.update(null, wrapper);
@@ -64,8 +67,10 @@ public class DoubleCommentServiceImpl implements IDoubleCommentService {
     }
 
     @Override
-    public Result showComments(Integer comid) {
-        List<DoubleComment> comments = doubleCommentMapper.selectList(new QueryWrapper<DoubleComment>().eq("id",comid));
-        return OtherUtils.showContent(comments,new DoubleComment());
+    public Result showComments(Integer comid ,Integer current) {
+        QueryWrapper<DoubleComment> wr = new QueryWrapper<DoubleComment>().eq("comid", comid);
+        Page<DoubleComment> page = new Page<>((long)DEFAULT_PAGESIZE * (current-1) , DEFAULT_PAGESIZE);
+        Page<DoubleComment> doubleCommentPage = doubleCommentMapper.selectPage(page, wr);
+        return OtherUtils.showContent(doubleCommentPage.getRecords(),new DoubleComment());
     }
 }

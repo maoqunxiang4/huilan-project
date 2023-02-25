@@ -2,6 +2,7 @@ package com.xiaomaotongzhi.huilan.service.UserServiceImpl;
 
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.xiaomaotongzhi.huilan.entity.Activity;
 import com.xiaomaotongzhi.huilan.entity.ActivityContent;
 import com.xiaomaotongzhi.huilan.entity.User;
 import com.xiaomaotongzhi.huilan.mapper.ActivityContentMapper;
@@ -59,8 +60,12 @@ public class ActivityContentServiceImpl implements IActivityContentService {
         if (rows!=1){
             return  Result.fail(503,"服务器出现不知名异常，请稍后重试") ;
         }
-
-        RedisUtils.RedisStringCache(stringRedisTemplate,activityContent,
+        ActivityContent Content = activityContentMapper.selectById(id);
+        Activity activity = activityMapper.selectById(Content.getBelong());
+        activity.setTitle(title);
+        activity.setContent(content);
+        activityMapper.updateById(activity) ;
+        RedisUtils.RedisHashCache(stringRedisTemplate,activityContent,
                 ACTIVITYCONTENT_PREFIX , id.toString() , ACTIVITY_EXPIRETIME , TimeUnit.MINUTES );
         //返回结果
         return Result.ok(200);

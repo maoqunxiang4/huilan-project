@@ -29,7 +29,7 @@ public class ServiceUtils {
 
     private LetterMapper letterService ;
 
-    public Integer addActivityContent(String title , Integer uid , String author , String content) {
+    public Integer addActivityContent(String title , Integer uid , String author , String content ,Integer belong) {
         UserVo user = UserHolder.getUser();
         //有，继续执行
         //存储数据
@@ -39,6 +39,7 @@ public class ServiceUtils {
         activityContent.setAuthor(author);
         activityContent.setTitle(title);
         activityContent.setIsDelete(0);
+        activityContent.setBelong(belong);
         //添加数据到数据库中
         int rows = activityContentMapper.insert(activityContent);
         if (rows!=1) {

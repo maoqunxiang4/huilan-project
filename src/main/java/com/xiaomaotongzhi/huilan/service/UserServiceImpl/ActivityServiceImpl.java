@@ -4,9 +4,12 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.io.resource.StringResource;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xiaomaotongzhi.huilan.entity.Activity;
+import com.xiaomaotongzhi.huilan.entity.ActivityAppointment;
 import com.xiaomaotongzhi.huilan.entity.ActivityContent;
 import com.xiaomaotongzhi.huilan.entity.User;
+import com.xiaomaotongzhi.huilan.mapper.ActivityAppointmentMapper;
 import com.xiaomaotongzhi.huilan.mapper.ActivityContentMapper;
 import com.xiaomaotongzhi.huilan.mapper.ActivityMapper;
 import com.xiaomaotongzhi.huilan.service.IActivityService;
@@ -43,6 +46,9 @@ public class ActivityServiceImpl implements IActivityService {
 
     @Autowired
     private ActivityContentMapper activityContentMapper ;
+
+    @Autowired
+    private ActivityAppointmentMapper activityAppointmentMapper ;
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate ;
@@ -82,10 +88,11 @@ public class ActivityServiceImpl implements IActivityService {
         activity.setContent(content);
         activity.setState(0);
         activity.setLocaldatetime(second);
+        activity.setUid(UserHolder.getUser().getId());
 
         ServiceUtils serviceUtils = new ServiceUtils();
         serviceUtils.setActivityContentMapper(activityContentMapper);
-        Integer aid = serviceUtils.addActivityContent(title, user.getId(), user.getUsername(), content);
+        Integer aid = serviceUtils.addActivityContent(title, user.getId(), user.getUsername(), content, 0 );
 
         activity.setAid(aid);
         //插入活动信息
@@ -94,6 +101,11 @@ public class ActivityServiceImpl implements IActivityService {
         if (rows==0){
             return Result.fail(503,"服务器出现不知名异常，请稍后重试") ;
         }
+
+        Activity one = activityMapper.selectOne(new QueryWrapper<Activity>().eq("aid", aid));
+        ActivityContent activityContent = new ActivityContent();
+        activityContent.setBelong(one.getId());
+        activityContentMapper.update(activityContent,new QueryWrapper<ActivityContent>().eq("title",title).eq("content",content)); ;
         //插入成功，返回结果
         return Result.ok(200);
     }
@@ -130,6 +142,7 @@ public class ActivityServiceImpl implements IActivityService {
         serviceUtils.setActivityContentMapper(activityContentMapper);
         serviceUtils.deleteActivityContent(aid) ;
         int rows = activityMapper.delete(new QueryWrapper<Activity>().eq("id", id));
+        activityAppointmentMapper.delete(new QueryWrapper<ActivityAppointment>().eq("aid",id)) ;
         if (rows==0){
             return Result.fail(503,"服务器出现不知名异常") ;
         }
@@ -137,10 +150,12 @@ public class ActivityServiceImpl implements IActivityService {
     }
 
     @Override
-    public Result showActivity() {
+    public Result showActivity(Integer current) {
         //搜索缓存
-        List<Activity> activities = activityMapper.selectList(new QueryWrapper<Activity>().orderByAsc("localdatetime"));
-        return OtherUtils.showContent(activities,new Activity());
+        QueryWrapper<Activity> wrapper = new QueryWrapper<Activity>().orderByAsc("localdatetime");
+        Page<Activity> page = new Page<>((long)DEFAULT_PAGESIZE * (current-1),DEFAULT_PAGESIZE );
+        Page<Activity> activityPage = activityMapper.selectPage(page, wrapper);
+        return OtherUtils.showContent(activityPage.getRecords(),new Activity());
     }
 
 }

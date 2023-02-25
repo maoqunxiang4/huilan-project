@@ -6,6 +6,7 @@ import cn.hutool.core.io.resource.StringResource;
 import cn.hutool.core.util.HashUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xiaomaotongzhi.huilan.entity.Activity;
 import com.xiaomaotongzhi.huilan.entity.ActivityContent;
 import com.xiaomaotongzhi.huilan.entity.ClubContent;
@@ -33,8 +34,7 @@ import javax.servlet.http.HttpSession;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import static com.xiaomaotongzhi.huilan.utils.Constants.LOGIN_PREFIX;
-import static com.xiaomaotongzhi.huilan.utils.Constants.WECHAT_PREFIX;
+import static com.xiaomaotongzhi.huilan.utils.Constants.*;
 import static com.xiaomaotongzhi.huilan.utils.RedisUtils.filedValueToString;
 
 @Service
@@ -163,52 +163,49 @@ public class UserServiceImpl implements IUserService {
 
 
     @Override
-    public Result showAllContent(){
+    public Result showAllContent(Integer current){
         UserVo user = UserHolder.getUser();
         Integer id = user.getId();
         Integer attestation = user.getAttestation();
-        if (attestation==1){
-            List<Activity> activities = activityMapper
-                    .selectList(new QueryWrapper<Activity>().eq("id", id)
-                            .orderByAsc("time"));
-            return  OtherUtils.showContent(activities,new Activity()) ;
-        }else if (attestation==2){
-            List<ClubContent> clubContents = clubContentMapper
-                    .selectList(new QueryWrapper<ClubContent>().eq("id", id)
-                            .orderByAsc("time"));
-            return OtherUtils.showContent(clubContents,new ClubContent()) ;
+        if (attestation==2){
+            QueryWrapper<Activity> wrapper = new QueryWrapper<Activity>().eq("uid", id)
+                    .orderByAsc("time");
+            Page<Activity> page = new Page<>((long) DEFAULT_PAGESIZE * (current - 1),DEFAULT_PAGESIZE);
+            Page<Activity> activityPage = activityMapper.selectPage(page, wrapper);
+            return  OtherUtils.showContent(activityPage.getRecords(),new Activity()) ;
+        }else if (attestation==1){
+            QueryWrapper<ClubContent> wrapper = new QueryWrapper<ClubContent>().eq("uid", id)
+                    .orderByAsc("time");
+            Page<ClubContent> page = new Page<>((long) DEFAULT_PAGESIZE * (current - 1),DEFAULT_PAGESIZE);
+            Page<ClubContent> clubContentPage = clubContentMapper.selectPage(page, wrapper);
+            return OtherUtils.showContent(clubContentPage.getRecords(),new ClubContent()) ;
         }
         return Result.ok(200) ;
     }
 
     @Override
-    public Result showSpecificContent(Integer id){
-        Integer attestation = UserHolder.getUser().getAttestation();
-        if (attestation==1){
-            ActivityContent activityContent = activityContentMapper.selectById(id);
-            if (activityContent!=null){
-                return Result.ok(200,activityContent) ;
-            }
-        }else if (attestation==2){
-            ClubContent clubContent = clubContentMapper.selectById(id);
-            if (clubContent==null){
-                return Result.ok(200,clubContent) ;
-            }
+    public Result showSpecificContent(Integer id,String title){
+        QueryWrapper<ClubContent> ClubContentWrapper = new QueryWrapper<ClubContent>().eq("id", id).eq("title", title);
+        QueryWrapper<ActivityContent> ActivityContentWrapper = new QueryWrapper<ActivityContent>().eq("id", id).eq("title", title);
+        ClubContent clubContent = clubContentMapper.selectOne(ClubContentWrapper);
+        if (clubContent!=null){
+            return Result.ok(200,clubContent) ;
+        }
+        ActivityContent activityContent = activityContentMapper.selectOne(ActivityContentWrapper);
+        if (activityContent!=null){
+            return Result.ok(200,activityContent) ;
         }
         return Result.ok(200) ;
     }
 
     @Override
-    public Result wechatLogin(Jscode2session jscode2session ,String username) {
-        String openid = DigestString(jscode2session.getOpenid());
-        String session_key = DigestString(jscode2session.getSession_key());
-        jscode2session.setOpenid(openid);
-        jscode2session.setSession_key(session_key);
-
+    public Result getWechatInfo(String openid) {
         User user = new User();
-        User isUser = userMapper.selectOne(new QueryWrapper<User>().eq("username", username));
+        User isUser = userMapper.selectOne(new QueryWrapper<User>().eq("username", openid));
         if (isUser==null){
-            user.setUsername(username);
+            user.setUsername(openid);
+            user.setPassword(null);
+            user.setSalt(null);
             user.setIsDelete(0);
             user.setAttestation(0);
             int rows = userMapper.insert(user);
@@ -219,12 +216,10 @@ public class UserServiceImpl implements IUserService {
 
         UserVo userVo = new UserVo();
         BeanUtil.copyProperties(user,userVo) ;
-        userVo.setSession_key(session_key);
-        userVo.setOpenId(openid);
         Map<String, Object> map = BeanUtil.beanToMap(userVo, new HashMap<>()
                 , CopyOptions.create().setIgnoreNullValue(true)
                         .setFieldValueEditor((filedName, filedValue) -> filedValueToString(filedValue)));
-        stringRedisTemplate.opsForHash().putAll(WECHAT_PREFIX + openid , map);
+        stringRedisTemplate.opsForHash().putAll(LOGIN_PREFIX + openid , map);
         return Result.ok(200,userVo);
     }
 

@@ -7,5 +7,5 @@ public interface IGymnasiumService {
     Result addGymnasium( String name) ;
     Result updateGymnasium(Integer id , String name) ;
     Result deleteGymnasium(Integer id) ;
-    Result showGymnasium() ;
+    Result showGymnasium(Integer current) ;
 }

@@ -1,6 +1,11 @@
 package com.xiaomaotongzhi.huilan.controller;
 
+import com.xiaomaotongzhi.huilan.entity.Activity;
+import com.xiaomaotongzhi.huilan.entity.ActivityContent;
+import com.xiaomaotongzhi.huilan.mapper.ActivityContentMapper;
+import com.xiaomaotongzhi.huilan.mapper.ActivityMapper;
 import com.xiaomaotongzhi.huilan.service.UserServiceImpl.ActivityAppointmentServiceImpl;
+import com.xiaomaotongzhi.huilan.service.UserServiceImpl.ActivityContentServiceImpl;
 import com.xiaomaotongzhi.huilan.service.UserServiceImpl.ActivityServiceImpl;
 import com.xiaomaotongzhi.huilan.utils.Result;
 import io.swagger.annotations.Api;
@@ -18,6 +23,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class ActivityController {
     @Autowired
     private ActivityServiceImpl activityService ;
+
+    @Autowired
+    private ActivityContentServiceImpl activityContentService ;
+
+    @Autowired
+    private ActivityMapper activityMapper ;
 
     @Autowired
     private ActivityAppointmentServiceImpl activityAppoinmentService ;
@@ -45,6 +56,8 @@ public class ActivityController {
             @ApiImplicitParam(name = "time" , value = "活动时间(格式:yyyy-MM-dd HH:mm)" , dataType = "LocalDateTime")
     })
     public Result updateActivity(Integer id ,String title , String content , String time){
+        Activity activity = activityMapper.selectById(id);
+        activityContentService.updateActivityContent(activity.getAid(),title,content) ;
         return activityService.updateActivity(id, title, content, time) ;
     }
 
@@ -61,8 +74,11 @@ public class ActivityController {
     @GetMapping("/show")
     @ApiOperation(value = "展示活动" ,
             notes = "接口：展示活动")
-    public Result showActivity(){
-        return activityService.showActivity() ;
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "current" , value = "当前页" ,dataType = "Integer") ,
+    })
+    public Result showActivity(Integer current){
+        return activityService.showActivity(current) ;
     }
 
     @GetMapping("/appoinment")

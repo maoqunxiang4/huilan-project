@@ -3,8 +3,13 @@ package com.xiaomaotongzhi.huilan.service.UserServiceImpl;
 import cn.hutool.core.util.BooleanUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xiaomaotongzhi.huilan.entity.ClubContent;
+import com.xiaomaotongzhi.huilan.entity.Comment;
+import com.xiaomaotongzhi.huilan.entity.DoubleComment;
 import com.xiaomaotongzhi.huilan.mapper.ClubContentMapper;
+import com.xiaomaotongzhi.huilan.mapper.CommentMapper;
+import com.xiaomaotongzhi.huilan.mapper.DoubleCommentMapper;
 import com.xiaomaotongzhi.huilan.service.IClubContentService;
 import com.xiaomaotongzhi.huilan.utils.OtherUtils;
 import com.xiaomaotongzhi.huilan.utils.Result;
@@ -14,22 +19,31 @@ import io.swagger.models.auth.In;
 import net.bytebuddy.asm.Advice;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.web.PageableHandlerMethodArgumentResolver;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.print.attribute.standard.MediaSize;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import static com.xiaomaotongzhi.huilan.utils.Constants.CLUBCONTENT_PREFIX;
+import static com.xiaomaotongzhi.huilan.utils.Constants.DEFAULT_PAGESIZE;
 
 @Service
 @Transactional
 public class ClubContentServiceImpl implements IClubContentService {
     @Autowired
     private ClubContentMapper clubContentMapper ;
+
+    @Autowired
+    private CommentMapper commentMapper ;
+
+    @Autowired
+    private DoubleCommentMapper doubleCommentMapper ;
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate ;
@@ -56,17 +70,28 @@ public class ClubContentServiceImpl implements IClubContentService {
 
     @Override
     public Result deleteClubContent(Integer id) {
+        ArrayList<Integer> ids = new ArrayList<>();
+        List<Comment> comments = commentMapper.selectList(new QueryWrapper<Comment>().eq("cid", id));
+        QueryWrapper<DoubleComment> wrapper = new QueryWrapper<>();
+        for (Comment comment : comments) {
+            ids.add(comment.getId()) ;
+            wrapper.eq("comid",comment.getId()) ;
+        }
+        doubleCommentMapper.delete(wrapper);
+        commentMapper.deleteBatchIds(ids) ;
         int rows = clubContentMapper.deleteById(id);
         if (rows==0){
             return Result.fail(503,"服务器出现不知名异常") ;
         }
+
         return Result.ok(200);
     }
 
     @Override
-    public Result showAllClubContent() {
-        List<ClubContent> clubContents = clubContentMapper.selectList(new QueryWrapper<ClubContent>().orderByDesc("time"));
-        return OtherUtils.showContent(clubContents,new ClubContent()) ;
+    public Result showAllClubContent(Integer current) {
+        Page<ClubContent> clubContentPage = clubContentMapper.selectPage(new Page<ClubContent>((long) DEFAULT_PAGESIZE * (current - 1), DEFAULT_PAGESIZE)
+                , new QueryWrapper<ClubContent>().orderByDesc("time"));
+        return OtherUtils.showContent(clubContentPage.getRecords(),new ClubContent()) ;
     }
 
     @Override
@@ -93,22 +118,22 @@ public class ClubContentServiceImpl implements IClubContentService {
         OtherUtils.NotBeNull(id.toString());
         String key = CLUBCONTENT_PREFIX + id ;
         String uid = UserHolder.getUser().getId().toString() ;
-        Map<Object, Boolean> member =
-                stringRedisTemplate.opsForSet().isMember(key);
-        if (member==null){
-            UpdateWrapper<ClubContent> wrapper = new UpdateWrapper<ClubContent>().eq("id", id).setSql("comments=comments+1");
+        stringRedisTemplate.opsForSet().add(key,String.valueOf(-1));
+        Boolean isMember = stringRedisTemplate.opsForSet().isMember(key, uid);
+        if (BooleanUtil.isFalse(isMember)){
+            UpdateWrapper<ClubContent> wrapper = new UpdateWrapper<ClubContent>().eq("id", id).setSql("liked= liked +1");
             int isSuccess = clubContentMapper.update(null, wrapper);
             if (isSuccess==1){
                 stringRedisTemplate.opsForSet().add(key,uid) ;
             }
         }else {
-            UpdateWrapper<ClubContent> wrapper = new UpdateWrapper<ClubContent>().eq("id", id).setSql("comments=comments -1 ");
+            UpdateWrapper<ClubContent> wrapper = new UpdateWrapper<ClubContent>().eq("id", id).setSql("liked=liked -1 ");
             int isSuccess = clubContentMapper.update(null, wrapper);
             if (isSuccess==1){
                 stringRedisTemplate.opsForSet().remove(key,uid) ;
             }
         }
-        return Result.ok(200);
+        return Result.ok(200,clubContentMapper.selectById(id));
     }
 
     @Override

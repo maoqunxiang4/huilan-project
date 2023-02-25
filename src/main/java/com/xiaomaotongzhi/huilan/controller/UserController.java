@@ -14,10 +14,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpSession;
@@ -55,15 +52,14 @@ public class UserController extends BaseController{
             notes = " 描述：微信登陆")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "code" , value = "wx登陆code" , dataType = "String") ,
-            @ApiImplicitParam(name = "username" , value = "微信号用户名" , dataType = "String")
     })
     @GetMapping("/wechatlogin/{code}")
-    public Result wechatLogin(@PathVariable(name = "code") String code ,String  username){
-        String path = " https://api.weixin.qq.com/sns/jscode2session?appid=" +
-                appid +  "&secret=" + secret +"&js_code=JSCODE&grant_type=authorization_code " ;
+    public Result wechatLogin(@PathVariable(name = "code") String code){
+        String path = "https://api.weixin.qq.com/sns/jscode2session?appid=" +
+                appid +  "&secret=" + secret +"&js_code=" + code +  "&grant_type=authorization_code" ;
         String json = restTemplate.getForObject(path, String.class);
         Jscode2session jscode2session = JSONUtil.toBean(json, Jscode2session.class) ;
-        userService.wechatLogin(jscode2session,username) ;
+        userService.getWechatInfo(jscode2session.getOpenid());
         return Result.ok(200,jscode2session) ;
     }
 
@@ -113,18 +109,19 @@ public class UserController extends BaseController{
     @ApiOperation(value="展示预约" ,
             notes="接口：展示预约")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "sign" , value = "标志符(传入1表示文体预约，传入2表示场地预约)" ,dataType = "Integer")
+            @ApiImplicitParam(name = "sign" , value = "标志符(传入1表示文体预约，传入2表示场地预约)" ,dataType = "Integer") ,
+            @ApiImplicitParam(name = "current" , value = "当前页" ,dataType = "Integer")
     })
     @GetMapping("/show/appointment")
-    public Result addactivityAppoinment(Integer sign){
-        if (sign==1) return activityAppoinmentService.showActivityAppoinment() ;
-        else return placeAppoinmentService.showPlaceAppoinment();
+    public Result showAppointment(Integer sign ,Integer current){
+        if (sign==1) return activityAppoinmentService.showActivityAppoinment(current) ;
+        else return placeAppoinmentService.showPlaceAppoinment(current);
     }
 
     @ApiOperation(value = "取消体育馆场地预约" ,
             notes = "接口：取消体育馆场地预约")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "pid" , value = "活动id(前端选中后自动传入)" , dataType = "Integer")
+            @ApiImplicitParam(name = "pid" , value = "场地id(前端选中后自动传入)" , dataType = "Integer")
     })
     @GetMapping("/delete/place/appoinment")
     public Result deletePlaceAppointment(Integer pid){
@@ -143,21 +140,24 @@ public class UserController extends BaseController{
 
     @ApiOperation(value = "展示全部博客（只展示标题）" ,
             notes = "接口：展示全部博客（只展示标题）")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "current" , value = "当前页" ,dataType = "Integer")
+    })
     @GetMapping("/show/allContent")
-    public Result showAllContent(){
-        return userService.showAllContent() ;
+    public Result showAllContent(Integer current){
+        return userService.showAllContent(current) ;
     }
 
     @ApiOperation(value = "展示博客具体内容" ,
             notes = "接口：展示博客具体内容")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id" , value = "指定博客的id" , dataType = "Integer")
+            @ApiImplicitParam(name = "id" , value = "指定博客的id" , dataType = "Integer") ,
+            @ApiImplicitParam(name = "title" , value = "标题" , dataType = "String") ,
     })
     @GetMapping("/delete/specificContent")
-    public Result showSpecificContent(Integer id){
-        return userService.showSpecificContent(id) ;
+    public Result showSpecificContent(Integer id,String title){
+        return userService.showSpecificContent(id, title) ;
     }
-
 
     @ApiOperation(value = "关注或取关" ,
             notes = "接口：关注或取关")
@@ -169,10 +169,13 @@ public class UserController extends BaseController{
         return attentionService.addOrDeleteAttention(uid) ;
     }
 
-    @ApiOperation(value = "关注或取关" ,
-            notes = "接口：关注或取关")
+    @ApiOperation(value = "关注列表" ,
+            notes = "接口：关注列表")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "current" , value = "当前页" ,dataType = "Integer")
+    })
     @GetMapping("/show/attentionList")
-    public Result showAttentionList(){
-        return attentionService.showAttentionList() ;
+    public Result showAttentionList(Integer current){
+        return attentionService.showAttentionList(current) ;
     }
 }

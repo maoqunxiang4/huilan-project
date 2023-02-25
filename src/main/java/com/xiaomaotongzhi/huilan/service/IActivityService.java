@@ -9,5 +9,5 @@ public interface IActivityService {
     Result addActivity(String title , String content , String time ) ;
     Result updateActivity(Integer id , String title , String content , String time ) ;
     Result deleteActivity(Integer id) ;
-    Result showActivity() ;
+    Result showActivity(Integer current) ;
 }

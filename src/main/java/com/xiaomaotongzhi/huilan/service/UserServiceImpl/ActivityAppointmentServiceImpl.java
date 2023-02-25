@@ -1,6 +1,7 @@
 package com.xiaomaotongzhi.huilan.service.UserServiceImpl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.xiaomaotongzhi.huilan.entity.Activity;
 import com.xiaomaotongzhi.huilan.entity.ActivityAppointment;
 import com.xiaomaotongzhi.huilan.entity.User;
@@ -17,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.xiaomaotongzhi.huilan.utils.Constants.DEFAULT_PAGESIZE;
 
 
 @Service
@@ -36,6 +39,9 @@ public class ActivityAppointmentServiceImpl implements IActivityAppointmentServi
         activityAppoinment.setAid(aid);
         activityAppoinment.setUid(user.getId());
         activityAppoinment.setSign(1);
+        activityAppoinment.setState(0);
+        Activity activity = activityMapper.selectById(aid);
+        activityAppoinment.setTime(activity.getTime()) ;
         int rows = activityAppoinmentMapper.insert(activityAppoinment);
         if (rows==0){
             return Result.fail(503,"服务器出现不知名异常，请稍后重试") ;
@@ -55,20 +61,20 @@ public class ActivityAppointmentServiceImpl implements IActivityAppointmentServi
 
     //query()方法实现排序展示
     @Override
-    public Result showActivityAppoinment() {
+    public Result showActivityAppoinment(Integer current) {
         ArrayList<Integer> ids = new ArrayList<>();
-        List<ActivityAppointment> activityAppoinments =
-                activityAppoinmentMapper.selectList
-                        (new QueryWrapper<ActivityAppointment>()
-                                .eq("uid",UserHolder.getUser().getId())
-                                .eq("state",0)
-                                .orderByDesc("time"));
-        if (activityAppoinments.isEmpty()){
+        QueryWrapper<ActivityAppointment> wr = new QueryWrapper<ActivityAppointment>()
+                .eq("uid", UserHolder.getUser().getId())
+                .eq("state", 0)
+                .orderByDesc("time");
+        Page<ActivityAppointment> page = new Page<>((long) (current - 1) *DEFAULT_PAGESIZE,DEFAULT_PAGESIZE);
+        List<ActivityAppointment> activityAppointments = activityAppoinmentMapper.selectPage(page, wr).getRecords();
+        if (activityAppointments.isEmpty()){
             return Result.ok(200,new Activity()) ;
         }
 
-        for (ActivityAppointment activityAppoinment : activityAppoinments) {
-            ids.add(activityAppoinment.getAid()) ;
+        for (ActivityAppointment activityAppointment : activityAppointments) {
+            ids.add(activityAppointment.getAid()) ;
         }
 
         List<Activity> activities = activityMapper.selectBatchIds(ids);
